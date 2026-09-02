@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossBorderCBDCSwap | e-INR & e-AED Bilateral CBDC Bridge</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#080C14',
+                            card: '#0F172A',
+                            border: '#1E293B',
+                            inr: '#F97316',      // Indian Saffron
+                            aed: '#10B981',      // UAE Emerald
+                            accent: '#06B6D4',   // Cyan Bridge
+                            gold: '#FBBF24',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flow-right': 'flowRight 2s linear infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        flowRight: {
+                            '0%': { transform: 'translateX(-100%)', opacity: '0' },
+                            '50%': { opacity: '1' },
+                            '100%': { transform: 'translateX(100%)', opacity: '0' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-6px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080C14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glow-inr {
+            box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.3);
+        }
+
+        .glow-aed {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+        }
+
+        .glow-cyan {
+            box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.35);
+        }
+
+        .gradient-text-inr {
+            background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-aed {
+            background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-bridge {
+            background: linear-gradient(135deg, #F97316 0%, #10B981 50%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-brand-accent selection:text-brand-dark">
+
+    <!-- Top Notification Bar: Official Corridor Notice -->
+    <div class="bg-gradient-to-r from-amber-950/40 via-emerald-950/40 to-cyan-950/40 border-b border-slate-800 py-2 px-4 text-xs text-center text-slate-300 flex items-center justify-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-ping"></span> MAINNET LIVE
+        </span>
+        <span>India (RBI) &amp; UAE (CBUAE) CBDC Cross-Border Bilateral Gateway: <strong>1 e-AED = 22.5 e-INR</strong></span>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Brand Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-inr via-brand-accent to-brand-aed p-0.5 shadow-lg flex items-center justify-center">
+                        <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center text-brand-accent font-bold">
+                            <i class="fa-solid fa-arrows-split-up-and-left rotate-90 text-lg"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                            CrossBorder<span class="text-brand-accent">CBDC</span>Swap
+                        </span>
+                        <div class="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                            <span>e-INR</span>
+                            <i class="fa-solid fa-repeat text-slate-500 text-[8px]"></i>
+                            <span>e-AED</span>
+                            <span class="text-emerald-400 ml-1">v2.4.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav Links -->
+                <div class="hidden lg:flex items-center space-x-7 text-sm font-medium text-slate-300">
+                    <a href="#about" class="hover:text-brand-accent transition-colors">Overview</a>
+                    <a href="#rate-mechanics" class="hover:text-brand-accent transition-colors">Exchange Rate</a>
+                    <a href="#simulator" class="hover:text-brand-accent transition-colors flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-brand-accent"></span> Live Swap Demo
+                    </a>
+                    <a href="#contract-functions" class="hover:text-brand-accent transition-colors">Functions &amp; ABI</a>
+                    <a href="#security" class="hover:text-brand-accent transition-colors">Security</a>
+                    <a href="#instructions" class="hover:text-brand-accent transition-colors">User Guide</a>
+                    <a href="#banks" class="hover:text-brand-accent transition-colors">Bank Nodes</a>
+                    <a href="#faq" class="hover:text-brand-accent transition-colors">FAQs</a>
+                </div>
+
+                <!-- CTA Actions -->
+                <div class="hidden sm:flex items-center gap-3">
+                    <button onclick="scrollToSimulator()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-code font-mono text-cyan-400"></i> View Contract
+                    </button>
+                    <button onclick="mockConnectWallet()" id="navWalletBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brand-inr to-brand-aed hover:opacity-95 text-slate-950 font-bold transition-all shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-wallet"></i> <span id="navWalletText">Connect CBDC Wallet</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="lg:hidden flex items-center">
+                    <button id="mobileMenuBtn" class="text-slate-400 hover:text-white p-2 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobileMenu" class="hidden lg:hidden border-t border-slate-800 bg-slate-950/95 px-4 pt-3 pb-6 space-y-3">
+            <a href="#about" class="block py-2 text-slate-300 hover:text-white">Overview</a>
+            <a href="#rate-mechanics" class="block py-2 text-slate-300 hover:text-white">Exchange Rate</a>
+            <a href="#simulator" class="block py-2 text-cyan-400 font-semibold">Live Swap Demo</a>
+            <a href="#contract-functions" class="block py-2 text-slate-300 hover:text-white">Functions &amp; ABI</a>
+            <a href="#security" class="block py-2 text-slate-300 hover:text-white">Security &amp; Benefits</a>
+            <a href="#instructions" class="block py-2 text-slate-300 hover:text-white">User Guide</a>
+            <a href="#banks" class="block py-2 text-slate-300 hover:text-white">Bank India &amp; UAE</a>
+            <a href="#faq" class="block py-2 text-slate-300 hover:text-white">FAQs</a>
+            <div class="pt-2">
+                <button onclick="mockConnectWallet()" class="w-full py-2.5 text-xs font-bold rounded-lg bg-gradient-to-r from-brand-inr to-brand-aed text-slate-950">
+                    Connect CBDC Wallet
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="relative pt-12 pb-24 overflow-hidden" id="about">
+        <!-- Background Gradient Glows -->
+        <div class="absolute top-10 left-1/4 w-96 h-96 bg-brand-inr/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-20 right-1/4 w-96 h-96 bg-brand-aed/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-brand-accent/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-3xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-medium text-slate-300 mb-6">
+                    <span class="flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                    Next-Gen Interoperability Protocol &bull; Bilateral Central Bank Settlement
+                </div>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight sm:leading-tight mb-6">
+                    Atomic Cross-Border Swaps for <br>
+                    <span class="gradient-text-inr">e-INR</span>
+                    <span class="text-slate-500 font-light mx-2">&amp;</span>
+                    <span class="gradient-text-aed">e-AED</span>
+                </h1>
+                <p class="text-lg text-slate-300 leading-relaxed mb-8">
+                    The official programmable smart contract protocol facilitating instantaneous, direct, and trust-minimized digital currency settlement between the <span class="text-orange-400 font-semibold">Digital Rupee (e-INR)</span> and the <span class="text-emerald-400 font-semibold">Digital Dirham (e-AED)</span> at an anchored institutional rate.
+                </p>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="#simulator" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-inr via-amber-500 to-brand-aed text-slate-950 font-bold text-sm shadow-xl shadow-orange-950/30 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt"></i> Launch Swap Interface
+                    </a>
+                    <a href="#contract-functions" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-code text-cyan-400"></i> Explore Smart Contract
+                    </a>
+                </div>
+
+                <!-- Corridor Quick Metric Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 text-left">
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-mono">Pegged Ratio</div>
+                        <div class="text-xl font-bold text-white mt-1">1 e-AED = 22.5 e-INR</div>
+                        <div class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Zero Slippage
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-mono">Settlement Time</div>
+                        <div class="text-xl font-bold text-cyan-400 mt-1">&lt; 2.4 Seconds</div>
+                        <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-clock"></i> 24/7/365 Real-time
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-mono">Intermediary Fee</div>
+                        <div class="text-xl font-bold text-emerald-400 mt-1">0.00% (No SWIFT)</div>
+                        <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-shield-halved"></i> Direct Central Banks
+                        </div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-mono">Key Function</div>
+                        <div class="text-base font-bold font-mono text-amber-400 mt-1 truncate">transferInrToAed</div>
+                        <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-microchip"></i> Direct Atomic DvP
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LIVE CONVERSION SIMULATOR SECTION -->
+    <section class="py-16 bg-slate-950/60 border-y border-slate-850 relative" id="simulator">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="text-xs font-mono font-bold tracking-widest uppercase text-cyan-400 bg-cyan-950/50 px-3 py-1 rounded border border-cyan-800/40">
+                    Interactive Protocol Sandbox
+                </span>
+                <h2 class="text-3xl font-bold text-white mt-3">Live e-INR &harr; e-AED Swap Simulator</h2>
+                <p class="text-slate-400 text-sm mt-2">Test the atomic execution logic implemented in the <code class="text-amber-400 font-mono text-xs bg-slate-900 px-1.5 py-0.5 rounded">CrossBorderCBDCSwap.sol</code> smart contract.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left: Swap Interface Card -->
+                <div class="lg:col-span-7">
+                    <div class="glass-panel rounded-2xl p-6 sm:p-8 relative glow-cyan">
+                        <!-- Swap Card Header -->
+                        <div class="flex items-center justify-between pb-5 border-b border-slate-800">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span class="font-semibold text-sm text-white">Smart Contract Execution Pool</span>
+                            </div>
+                            <div class="text-xs font-mono text-slate-400 flex items-center gap-2">
+                                <span class="bg-slate-800 px-2.5 py-1 rounded text-emerald-400 border border-slate-700">Rate: 1 e-AED = 22.5 e-INR</span>
+                            </div>
+                        </div>
+
+                        <!-- From Input Box -->
+                        <div class="mt-6 bg-slate-900/90 rounded-xl p-4 border border-slate-800 focus-within:border-brand-accent transition-colors">
+                            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                                <span id="inputLabelText">You Send (Deposit to Contract)</span>
+                                <span class="font-mono">Balance: <span id="sourceBalance" class="text-slate-200">50,000.00</span> <span id="sourceSymbolMini">e-INR</span></span>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <input type="number" id="fromAmount" value="22500" min="1" step="any" 
+                                    class="w-full bg-transparent text-2xl sm:text-3xl font-bold font-mono text-white focus:outline-none placeholder-slate-600"
+                                    placeholder="0.00" oninput="calculateSwap()">
+                                <div class="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 shrink-0">
+                                    <span id="sourceFlag" class="text-xl">🇮🇳</span>
+                                    <span id="sourceCurrencyName" class="font-bold text-sm text-white font-mono">e-INR</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 text-[11px] text-slate-500">
+                                <span>Approx. Institutional Value</span>
+                                <div class="flex gap-1">
+                                    <button onclick="setQuickAmount(5000)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">5k</button>
+                                    <button onclick="setQuickAmount(22500)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">22.5k</button>
+                                    <button onclick="setQuickAmount(100000)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">100k</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Swap Direction Switch Button -->
+                        <div class="flex justify-center -my-3 relative z-20">
+                            <button onclick="toggleDirection()" class="p-3 bg-gradient-to-r from-brand-inr to-brand-aed text-slate-950 font-bold rounded-full border-4 border-brand-dark hover:rotate-180 transition-all duration-300 shadow-lg">
+                                <i class="fa-solid fa-arrow-down-up-across-line text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- To Output Box -->
+                        <div class="mt-2 bg-slate-900/90 rounded-xl p-4 border border-slate-800">
+                            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                                <span id="outputLabelText">Recipient Receives (Settled in UAE)</span>
+                                <span class="font-mono">Vault Liquidity: <span class="text-emerald-400">12,500,000.00</span></span>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <input type="text" id="toAmount" value="1000.00" readonly
+                                    class="w-full bg-transparent text-2xl sm:text-3xl font-bold font-mono text-emerald-400 focus:outline-none"
+                                    placeholder="0.00">
+                                <div class="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 shrink-0">
+                                    <span id="targetFlag" class="text-xl">🇦🇪</span>
+                                    <span id="targetCurrencyName" class="font-bold text-sm text-white font-mono">e-AED</span>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-[11px] text-slate-500 flex justify-between items-center">
+                                <span>Formula: <code id="formulaDisplay" class="text-slate-400 font-mono">e-INR / 22.5</code></span>
+                                <span class="text-emerald-400 font-medium">Guaranteed Exact Output</span>
+                            </div>
+                        </div>
+
+                        <!-- Recipient Address Input -->
+                        <div class="mt-4">
+                            <label class="block text-xs font-mono text-slate-400 mb-1">Target Beneficiary CBDC Address (<span id="recipientAddressLabel">bankUAE Corridor</span>)</label>
+                            <div class="relative">
+                                <input type="text" id="recipientAddress" value="0x71C...9e42 (UAE Central Bank Whitelisted)" 
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 px-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500">
+                                <span class="absolute right-3 top-2.5 text-xs text-emerald-400 font-mono"><i class="fa-solid fa-badge-check"></i> KYC Verified</span>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary Details -->
+                        <div class="mt-5 bg-slate-950/80 rounded-xl p-4 border border-slate-850 space-y-2 text-xs">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Selected Method</span>
+                                <span id="methodName" class="font-mono font-semibold text-amber-400">transferInrToAed(amount, recipient)</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Fixed Exchange Rate</span>
+                                <span class="font-mono text-slate-200">1 e-AED = 22.500000 e-INR</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Cross-Border Intermediary Fees</span>
+                                <span class="font-mono text-emerald-400 font-semibold">₹0.00 / 0.00 AED (Waived)</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Estimated Gas / Settlement Latency</span>
+                                <span class="font-mono text-slate-300">~1.8 sec (PoA CBDC Consortium)</span>
+                            </div>
+                        </div>
+
+                        <!-- Swap CTA Button -->
+                        <button onclick="executeSimulatedSwap()" id="executeSwapBtn" 
+                            class="w-full mt-6 py-4 rounded-xl bg-gradient-to-r from-brand-inr via-amber-500 to-brand-aed text-slate-950 font-extrabold text-sm shadow-lg hover:shadow-cyan-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bolt"></i> 
+                            <span id="btnActionText">Execute transferInrToAed Direct Swap</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Protocol Architecture & Live Execution Log -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Contract State / Pool Health -->
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono">Corridor Vault Reserves</h3>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Balanced (1:1 Peg Ratio)</span>
+                        </div>
+                        
+                        <!-- INR Reserve Bar -->
+                        <div class="mb-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-orange-400 font-mono font-semibold">bankIndia (e-INR Vault)</span>
+                                <span class="font-mono text-slate-300">281,250,000 e-INR</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-gradient-to-r from-orange-600 to-amber-500 h-2.5 rounded-full" style="width: 78%"></div>
+                            </div>
+                        </div>
+
+                        <!-- AED Reserve Bar -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-emerald-400 font-mono font-semibold">bankUAE (e-AED Vault)</span>
+                                <span class="font-mono text-slate-300">12,500,000 e-AED</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-gradient-to-r from-emerald-600 to-teal-400 h-2.5 rounded-full" style="width: 78%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                            <span>Equivalent Total Locked:</span>
+                            <span class="font-mono font-semibold text-white">~ $3,403,675 USD</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Simulation Logs Terminal -->
+                    <div class="glass-panel rounded-2xl p-5 border border-slate-800 font-mono text-xs">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                                <span class="text-slate-400 text-[11px] ml-1">SwapExecution.log</span>
+                            </div>
+                            <button onclick="clearLogs()" class="text-[10px] text-slate-500 hover:text-slate-300">Clear</button>
+                        </div>
+
+                        <div id="terminalLog" class="mt-3 space-y-2 h-44 overflow-y-auto pr-2 text-[11px] text-slate-300">
+                            <div class="text-slate-500">[SYSTEM] Node connected: Bilateral Corridor Gateway (IN-UAE-CBDC-01)</div>
+                            <div class="text-slate-500">[ORACLE] Peg verification: 1 e-AED = 22.5000 e-INR OK</div>
+                            <div class="text-emerald-400">[READY] Smart contract awaiting transferInrToAed execution...</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXCHANGE RATE RATIO & DYNAMICS EXPLAINER -->
+    <section class="py-20 bg-brand-dark relative" id="rate-mechanics">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                
+                <div>
+                    <span class="text-xs font-mono font-bold tracking-widest uppercase text-brand-inr bg-orange-950/40 px-3 py-1 rounded border border-orange-800/40">
+                        Peg Mechanics &amp; Mathematics
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-6">
+                        Fixed Mathematical Ratio: <br>
+                        <span class="gradient-text-bridge">1 e-AED = 22.5 e-INR</span>
+                    </h2>
+                    <p class="text-slate-300 leading-relaxed mb-6">
+                        The <code class="text-brand-accent font-mono bg-slate-900 px-1.5 py-0.5 rounded">CrossBorderCBDCSwap</code> contract enforces deterministic cross-currency parity backed by bilateral sovereign currency corridors. By locking standard conversion ratios within decentralized state machines, financial institutions eradicate the 3% to 7% foreign exchange friction typical of conventional correspondent banking.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="w-9 h-9 rounded-lg bg-orange-500/10 text-brand-inr flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-white">INR to AED Conversion Formula</h4>
+                                <p class="text-xs text-slate-400 mt-1 font-mono">aedAmount = (inrAmount * 1e18) / (22.5 * 1e18)</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">For example: 22,500 e-INR &divide; 22.5 = exactly 1,000.00 e-AED.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-brand-aed flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="fa-solid fa-arrows-spin"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-white">AED to INR Conversion Formula</h4>
+                                <p class="text-xs text-slate-400 mt-1 font-mono">inrAmount = (aedAmount * 225) / 10</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">For example: 1,000 e-AED &times; 22.5 = exactly 22,500.00 e-INR.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="w-9 h-9 rounded-lg bg-cyan-500/10 text-brand-accent flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="fa-solid fa-scale-balanced"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-white">Bilateral Liquidity Rebalancing</h4>
+                                <p class="text-xs text-slate-400 mt-1">Joint central bank vault keepers (<code class="text-slate-300 font-mono">bankIndia</code> &amp; <code class="text-slate-300 font-mono">bankUAE</code>) provide liquidity backstops to maintain zero slippage even on high-volume commercial settlements.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Table Card: Old SWIFT vs CBDC Swap -->
+                <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 relative">
+                    <div class="text-center pb-6 border-b border-slate-800">
+                        <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">Corridor Efficiency Matrix</span>
+                        <h3 class="text-xl font-bold text-white mt-1">Legacy SWIFT vs. CrossBorderCBDCSwap</h3>
+                    </div>
+
+                    <div class="mt-6 space-y-4">
+                        <!-- Metric 1 -->
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="text-slate-400">Settlement Speed</span>
+                                <span class="text-emerald-400 font-bold font-mono">99.9% Faster</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                                <div class="bg-red-950/30 p-2 rounded border border-red-900/40 text-red-300">
+                                    <span class="block text-[10px] text-slate-500">Legacy SWIFT:</span>
+                                    2 - 3 Business Days
+                                </div>
+                                <div class="bg-emerald-950/30 p-2 rounded border border-emerald-900/40 text-emerald-300">
+                                    <span class="block text-[10px] text-slate-500">CBDC Smart Contract:</span>
+                                    &lt; 2.4 Seconds
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metric 2 -->
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="text-slate-400">Transfer &amp; FX Spread Fees</span>
+                                <span class="text-emerald-400 font-bold font-mono">Zero Middlemen</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                                <div class="bg-red-950/30 p-2 rounded border border-red-900/40 text-red-300">
+                                    <span class="block text-[10px] text-slate-500">Legacy SWIFT:</span>
+                                    3.5% to 5.0% Spread
+                                </div>
+                                <div class="bg-emerald-950/30 p-2 rounded border border-emerald-900/40 text-emerald-300">
+                                    <span class="block text-[10px] text-slate-500">CBDC Smart Contract:</span>
+                                    Fixed 22.5 Ratio (0% Spread)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metric 3 -->
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="text-slate-400">Counterparty &amp; Settlement Risk</span>
+                                <span class="text-emerald-400 font-bold font-mono">Zero Principal Risk</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                                <div class="bg-red-950/30 p-2 rounded border border-red-900/40 text-red-300">
+                                    <span class="block text-[10px] text-slate-500">Legacy SWIFT:</span>
+                                    Nostro/Vostro Risk
+                                </div>
+                                <div class="bg-emerald-950/30 p-2 rounded border border-emerald-900/40 text-emerald-300">
+                                    <span class="block text-[10px] text-slate-500">CBDC Smart Contract:</span>
+                                    Atomic DvP Execution
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 text-center text-xs text-slate-400 font-mono">
+                        Audited by Central Banking Security Consortium &bull; ERC-20 / CBDC Token Compliant
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SMART CONTRACT FUNCTIONS & ARCHITECTURE -->
+    <section class="py-20 bg-slate-950 border-y border-slate-850" id="contract-functions">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono font-bold tracking-widest uppercase text-amber-400 bg-amber-950/40 px-3 py-1 rounded border border-amber-800/40">
+                    Smart Contract Interface
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3">Comprehensive Function Specification</h2>
+                <p class="text-slate-400 text-sm mt-2">Explore the primary callable methods powering the <code class="text-brand-accent font-mono">CrossBorderCBDCSwap</code> protocol, with emphasis on direct e-INR to e-AED atomic bridging.</p>
+            </div>
+
+            <!-- Function Breakdown Grid -->
+            <div class="grid lg:grid-cols-12 gap-8">
+                
+                <!-- Left: Function Selector List -->
+                <div class="lg:col-span-5 space-y-3">
+                    
+                    <!-- Function 1: transferInrToAed (Featured) -->
+                    <div onclick="selectFunction('transferInrToAed')" id="card-transferInrToAed" 
+                        class="function-card p-5 rounded-xl glass-panel border-2 border-brand-inr cursor-pointer transition-all hover:bg-slate-850">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">EXTERNAL MUTATIVE</span>
+                            <span class="text-[11px] font-mono text-emerald-400"><i class="fa-solid fa-circle text-[8px]"></i> Core Function</span>
+                        </div>
+                        <h4 class="text-base font-bold text-white font-mono flex items-center gap-2">
+                            transferInrToAed
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-1">Converts e-INR to e-AED at the 22.5 ratio and transfers directly to the designated UAE CBDC recipient.</p>
+                    </div>
+
+                    <!-- Function 2: transferAedToInr -->
+                    <div onclick="selectFunction('transferAedToInr')" id="card-transferAedToInr" 
+                        class="function-card p-5 rounded-xl glass-panel border border-slate-800 cursor-pointer transition-all hover:bg-slate-850 opacity-80 hover:opacity-100">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">EXTERNAL MUTATIVE</span>
+                            <span class="text-[11px] font-mono text-slate-400">Reverse Bridge</span>
+                        </div>
+                        <h4 class="text-base font-bold text-white font-mono">
+                            transferAedToInr
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-1">Accepts e-AED deposits and mints/dispatches proportional e-INR to the Indian beneficiary address.</p>
+                    </div>
+
+                    <!-- Function 3: getExchangeRate -->
+                    <div onclick="selectFunction('getExchangeRate')" id="card-getExchangeRate" 
+                        class="function-card p-5 rounded-xl glass-panel border border-slate-800 cursor-pointer transition-all hover:bg-slate-850 opacity-80 hover:opacity-100">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">PUBLIC VIEW</span>
+                            <span class="text-[11px] font-mono text-slate-400">Deterministic</span>
+                        </div>
+                        <h4 class="text-base font-bold text-white font-mono">
+                            getExchangeRate
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-1">Returns the fixed conversion numerator and denominator parameters (22.5 scaled by 1e18 decimals).</p>
+                    </div>
+
+                    <!-- Function 4: settleLiquidity (Bank Multi-sig) -->
+                    <div onclick="selectFunction('settleLiquidity')" id="card-settleLiquidity" 
+                        class="function-card p-5 rounded-xl glass-panel border border-slate-800 cursor-pointer transition-all hover:bg-slate-850 opacity-80 hover:opacity-100">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">RESTRICTED GOVERNANCE</span>
+                            <span class="text-[11px] font-mono text-amber-400">2-of-2 Multisig</span>
+                        </div>
+                        <h4 class="text-base font-bold text-white font-mono">
+                            settleLiquidity
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-1">Only callable by bankIndia and bankUAE keys to rebalance collateral reserves between sovereign vaults.</p>
+                    </div>
+
+                </div>
+
+                <!-- Right: Solidity Code & ABI Inspector -->
+                <div class="lg:col-span-7">
+                    <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800">
+                        <!-- Code Box Header -->
+                        <div class="bg-slate-900 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                                <span id="codeFileName" class="text-xs font-mono text-slate-300 ml-2">CrossBorderCBDCSwap.sol &bull; transferInrToAed</span>
+                            </div>
+                            <button onclick="copyCodeSnippet()" class="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-mono">
+                                <i class="fa-regular fa-copy"></i> <span id="copyBtnText">Copy Code</span>
+                            </button>
+                        </div>
+
+                        <!-- Code Viewer Body -->
+                        <div class="p-6 bg-[#0B1120] font-mono text-xs sm:text-sm overflow-x-auto">
+                            <pre id="codeDisplay" class="text-slate-300 leading-relaxed"><code class="language-solidity">
+<span class="text-purple-400">pragma solidity</span> ^0.8.20;
+
+<span class="text-slate-500">/**
+ * @title CrossBorderCBDCSwap
+ * @notice Bilateral Atomic Swap for Indian e-INR and UAE e-AED
+ * @dev Enforces 1 e-AED = 22.5 e-INR fixed ratio
+ */</span>
+<span class="text-purple-400">contract</span> <span class="text-amber-300">CrossBorderCBDCSwap</span> {
+    <span class="text-purple-400">address public immutable</span> bankIndia;
+    <span class="text-purple-400">address public immutable</span> bankUAE;
+    
+    <span class="text-purple-400">IERC20 public immutable</span> eINR;
+    <span class="text-purple-400">IERC20 public immutable</span> eAED;
+    
+    <span class="text-slate-500">// 1 e-AED = 22.5 e-INR (Scaled by 1e18)</span>
+    <span class="text-purple-400">uint256 public constant</span> INR_PER_AED_RATIO = 22.5 * 1e18;
+
+    <span class="text-purple-400">event</span> <span class="text-cyan-400">SwapInrToAed</span>(<span class="text-purple-400">address indexed</span> sender, <span class="text-purple-400">address indexed</span> recipient, <span class="text-purple-400">uint256</span> inrAmount, <span class="text-purple-400">uint256</span> aedAmount);
+
+    <span class="text-slate-500">/**
+     * @notice Converts e-INR directly to e-AED
+     * @param inrAmount Amount of e-INR to deposit (18 decimals)
+     * @param recipientAed Recipient CBDC address in UAE
+     */</span>
+    <span class="text-purple-400">function</span> <span class="text-blue-400">transferInrToAed</span>(
+        <span class="text-purple-400">uint256</span> inrAmount, 
+        <span class="text-purple-400">address</span> recipientAed
+    ) <span class="text-purple-400">external returns</span> (<span class="text-purple-400">uint256</span> aedAmount) {
+        <span class="text-purple-400">require</span>(inrAmount &gt; 0, <span class="text-emerald-300">"Invalid INR amount"</span>);
+        <span class="text-purple-400">require</span>(recipientAed != <span class="text-purple-400">address</span>(0), <span class="text-emerald-300">"Invalid recipient"</span>);
+
+        <span class="text-slate-500">// Calculate proportional e-AED output</span>
+        aedAmount = (inrAmount * 1e18) / INR_PER_AED_RATIO;
+        <span class="text-purple-400">require</span>(eAED.balanceOf(<span class="text-purple-400">address</span>(<span class="text-purple-400">this</span>)) &gt;= aedAmount, <span class="text-emerald-300">"Insufficient e-AED liquidity"</span>);
+
+        <span class="text-slate-500">// Atomic settlement: Collect e-INR -> Payout e-AED</span>
+        eINR.transferFrom(msg.sender, <span class="text-purple-400">address</span>(<span class="text-purple-400">this</span>), inrAmount);
+        eAED.transfer(recipientAed, aedAmount);
+
+        <span class="text-purple-400">emit</span> <span class="text-cyan-400">SwapInrToAed</span>(msg.sender, recipientAed, inrAmount, aedAmount);
+        <span class="text-purple-400">return</span> aedAmount;
+    }
+}</code></pre>
+                        </div>
+
+                        <!-- Parameters and Returns Table -->
+                        <div id="functionMetadata" class="bg-slate-900/90 p-5 border-t border-slate-800">
+                            <h5 class="text-xs font-bold text-white uppercase tracking-wider font-mono mb-3">Parameters &amp; Return Types</h5>
+                            <div class="grid sm:grid-cols-2 gap-4 text-xs font-mono">
+                                <div>
+                                    <span class="text-slate-400">Input Parameters:</span>
+                                    <ul class="mt-1 space-y-1 text-slate-300">
+                                        <li>&bull; <code class="text-orange-400">inrAmount (uint256)</code> - Raw e-INR value</li>
+                                        <li>&bull; <code class="text-emerald-400">recipientAed (address)</code> - UAE wallet</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400">Output Returns:</span>
+                                    <ul class="mt-1 space-y-1 text-slate-300">
+                                        <li>&bull; <code class="text-cyan-400">aedAmount (uint256)</code> - Exact e-AED delivered</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECURITY & BILATERAL BENEFITS -->
+    <section class="py-20 bg-brand-dark" id="security">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono font-bold tracking-widest uppercase text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded border border-emerald-800/40">
+                    Institutional Trust &amp; Safety
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3">Enterprise-Grade Security &amp; Benefits</h2>
+                <p class="text-slate-400 text-sm mt-2">Engineered specifically to satisfy compliance mandates of the Reserve Bank of India (RBI) and Central Bank of the UAE (CBUAE).</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Benefit 1 -->
+                <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 hover:border-brand-inr/50 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-orange-500/10 text-brand-inr flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-atom"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Atomic DvP (Delivery vs Payment)</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                        Eliminates Herstatt settlement risk. The swap executes atomically: either both parties receive their designated CBDCs simultaneously, or the entire transaction reverts seamlessly.
+                    </p>
+                    <ul class="mt-4 space-y-1.5 text-xs text-slate-400 font-mono">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> No partial fills</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Automatic revert on fault</li>
+                    </ul>
+                </div>
+
+                <!-- Benefit 2 -->
+                <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 hover:border-brand-aed/50 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-brand-aed flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-fingerprint"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">KYC &amp; AML Regulatory Bound</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                        Both <code class="text-slate-300 font-mono">bankIndia</code> and <code class="text-slate-300 font-mono">bankUAE</code> integrate cryptographic identity attestations to guarantee that only whitelisted, regulated entities swap funds.
+                    </p>
+                    <ul class="mt-4 space-y-1.5 text-xs text-slate-400 font-mono">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> FATF Travel Rule Compliant</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Soulbound ID Verifier</li>
+                    </ul>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">2-of-2 Dual-Sovereign Governance</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                        No unilateral contract modification or rate fluctuation is permitted without concurrent cryptographic signatures from both the Reserve Bank of India and Central Bank of UAE.
+                    </p>
+                    <ul class="mt-4 space-y-1.5 text-xs text-slate-400 font-mono">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Multi-Sig Parameter Lock</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Time-locked emergency pauses</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP-BY-STEP USER INSTRUCTIONS -->
+    <section class="py-20 bg-slate-950 border-y border-slate-850" id="instructions">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono font-bold tracking-widest uppercase text-cyan-400 bg-cyan-950/40 px-3 py-1 rounded border border-cyan-800/40">
+                    Integration &amp; Usage
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3">Step-by-Step Execution Guide</h2>
+                <p class="text-slate-400 text-sm mt-2">How Indian commercial enterprises, banks, and users transfer e-INR directly into e-AED.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Step 1 -->
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 relative">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-brand-accent font-mono font-bold text-sm flex items-center justify-center mb-4">
+                        01
+                    </div>
+                    <h4 class="text-base font-bold text-white mb-2">Connect CBDC Wallet</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Authenticate with your authorized institutional e-INR wallet (backed by Reserve Bank of India CBDC identity token).
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 relative">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-brand-inr font-mono font-bold text-sm flex items-center justify-center mb-4">
+                        02
+                    </div>
+                    <h4 class="text-base font-bold text-white mb-2">Approve e-INR Allowance</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Authorize the <code class="text-slate-300 font-mono">CrossBorderCBDCSwap</code> smart contract to debit the required e-INR amount from your balance.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 relative">
+                    <div class="w-8 h-8 rounded-full bg-amber-400 border border-amber-300 text-slate-950 font-mono font-bold text-sm flex items-center justify-center mb-4">
+                        03
+                    </div>
+                    <h4 class="text-base font-bold text-white mb-2">Call transferInrToAed</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Pass the exact INR amount and the recipient's UAE wallet address. Contract validates the 1:22.5 peg in real-time.
+                    </p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 relative">
+                    <div class="w-8 h-8 rounded-full bg-brand-aed border border-emerald-300 text-slate-950 font-mono font-bold text-sm flex items-center justify-center mb-4">
+                        04
+                    </div>
+                    <h4 class="text-base font-bold text-white mb-2">Instant e-AED Credit</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        The contract dispatches the corresponding e-AED directly into the UAE recipient's account in under 3 seconds.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BANK PARTICIPANTS & CONTACT DIRECTORY -->
+    <section class="py-20 bg-brand-dark" id="banks">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono font-bold tracking-widest uppercase text-brand-inr bg-orange-950/40 px-3 py-1 rounded border border-orange-800/40">
+                    Bilateral Central Bank Nodes
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3">Designated Corridor Participants</h2>
+                <p class="text-slate-400 text-sm mt-2">Institutional contact points for node operators, authorized commercial banks, and technical API support.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                
+                <!-- bankIndia Node Card -->
+                <div class="glass-panel p-8 rounded-2xl border border-orange-900/40 glow-inr relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl"></div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🇮🇳</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">bankIndia Node</h3>
+                                <span class="text-xs font-mono text-orange-400">Reserve Bank Information Tech / RBI Hub</span>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                            Node #IN-01
+                        </span>
+                    </div>
+
+                    <div class="space-y-3 text-xs font-mono mb-6">
+                        <div class="flex justify-between py-1.5 border-b border-slate-800">
+                            <span class="text-slate-400">Contract Address Variable:</span>
+                            <span class="text-slate-200">bankIndia (public immutable)</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-slate-800">
+                            <span class="text-slate-400">Verified Address:</span>
+                            <span class="text-orange-400">0x8a92B...554eRBI</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-slate-800">
+                            <span class="text-slate-400">Corridor Endpoint:</span>
+                            <span class="text-slate-200">https://einr.rbi.gateway.in/rpc</span>
+                        </div>
+                        <div class="flex justify-between py-1.5">
+                            <span class="text-slate-400">Support Desk:</span>
+                            <span class="text-slate-200">cbdc-gateway@rbi.org.in</span>
+                        </div>
+                    </div>
+
+                    <a href="mailto:cbdc-gateway@rbi.org.in" class="block w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs text-center transition-colors">
+                        <i class="fa-solid fa-headset mr-1.5"></i> Contact India CBDC Integration Desk
+                    </a>
+                </div>
+
+                <!-- bankUAE Node Card -->
+                <div class="glass-panel p-8 rounded-2xl border border-emerald-900/40 glow-aed relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">🇦🇪</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">bankUAE Node</h3>
+                                <span class="text-xs font-mono text-emerald-400">Central Bank of the UAE / CBUAE Hub</span>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            Node #UAE-01
+                        </span>
+                    </div>
+
+                    <div class="space-y-3 text-xs font-mono mb-6">
+                        <div class="flex justify-between py-1.5 border-b border-slate-800">
+                            <span class="text-slate-400">Contract Address Variable:</span>
+                            <span class="text-slate-200">bankUAE (public immutable)</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-slate-800">
+                            <span class="text-slate-400">Verified Address:</span>
+                            <span class="text-emerald-400">0x3bF71...a901CBUAE</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-slate-800">
+                            <span class="text-slate-400">Corridor Endpoint:</span>
+                            <span class="text-slate-200">https://eaed.cbuae.gateway.ae/rpc</span>
+                        </div>
+                        <div class="flex justify-between py-1.5">
+                            <span class="text-slate-400">Support Desk:</span>
+                            <span class="text-slate-200">digitaldirham@cbuae.gov.ae</span>
+                        </div>
+                    </div>
+
+                    <a href="mailto:digitaldirham@cbuae.gov.ae" class="block w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center transition-colors">
+                        <i class="fa-solid fa-headset mr-1.5"></i> Contact UAE Digital Dirham Desk
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQS ACCORDION -->
+    <section class="py-20 bg-slate-950/70 border-t border-slate-850" id="faq">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-xs font-mono font-bold tracking-widest uppercase text-purple-400 bg-purple-950/40 px-3 py-1 rounded border border-purple-800/40">
+                    Frequently Asked Questions
+                </span>
+                <h2 class="text-3xl font-extrabold text-white mt-3">CrossBorderCBDCSwap Clarifications</h2>
+            </div>
+
+            <div class="space-y-4">
+                
+                <!-- FAQ Item 1 -->
+                <div class="glass-panel rounded-xl border border-slate-800 overflow-hidden">
+                    <button onclick="toggleFaq(1)" class="w-full p-5 text-left flex justify-between items-center focus:outline-none">
+                        <span class="text-sm font-bold text-white">Why is the exchange rate anchored at 1 e-AED = 22.5 e-INR?</span>
+                        <i id="faq-icon-1" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                    </button>
+                    <div id="faq-answer-1" class="hidden px-5 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-slate-850 pt-3">
+                        The 1:22.5 exchange rate is set pursuant to the bilateral local currency settlement bilateral framework established between the RBI and CBUAE. It represents the target benchmark exchange mechanism embedded in the smart contract's state machine, shielded from speculative decentralized exchange volatility.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="glass-panel rounded-xl border border-slate-800 overflow-hidden">
+                    <button onclick="toggleFaq(2)" class="w-full p-5 text-left flex justify-between items-center focus:outline-none">
+                        <span class="text-sm font-bold text-white">What happens if liquidity in the contract runs low during a large transfer?</span>
+                        <i id="faq-icon-2" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                    </button>
+                    <div id="faq-answer-2" class="hidden px-5 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-slate-850 pt-3">
+                        The contract will immediately revert with an <code class="text-amber-400 font-mono">Insufficient e-AED liquidity</code> error before deducting any source e-INR funds. Central banks continuously execute automated <code class="text-cyan-400 font-mono">settleLiquidity()</code> rebalances to preserve deep liquidity pools.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="glass-panel rounded-xl border border-slate-800 overflow-hidden">
+                    <button onclick="toggleFaq(3)" class="w-full p-5 text-left flex justify-between items-center focus:outline-none">
+                        <span class="text-sm font-bold text-white">Can any standard Ethereum wallet interact with this contract?</span>
+                        <i id="faq-icon-3" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                    </button>
+                    <div id="faq-answer-3" class="hidden px-5 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-slate-850 pt-3">
+                        The smart contract conforms to EVM ERC-20 token interface specifications; however, only addresses that have cleared CBDC participant KYC and possess verified soulbound credentials recognized by either `bankIndia` or `bankUAE` can successfully broadcast swap transactions.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="glass-panel rounded-xl border border-slate-800 overflow-hidden">
+                    <button onclick="toggleFaq(4)" class="w-full p-5 text-left flex justify-between items-center focus:outline-none">
+                        <span class="text-sm font-bold text-white">How does `transferInrToAed` protect against front-running and MEV?</span>
+                        <i id="faq-icon-4" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                    </button>
+                    <div id="faq-answer-4" class="hidden px-5 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-slate-850 pt-3">
+                        Because the rate is anchored mathematically (1:22.5) without an Automated Market Maker (AMM) constant-product curve ($x \times y = k$), slippage is mathematically 0.00%. Front-running or sandwich attacks yield zero profit in this sovereign bilateral model.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-dark border-t border-slate-850 pt-16 pb-12 text-slate-400 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <!-- Col 1 -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-r from-brand-inr to-brand-aed flex items-center justify-center text-slate-950 font-bold text-xs">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </div>
+                        <span class="text-base font-bold text-white">CrossBorderCBDCSwap</span>
+                    </div>
+                    <p class="text-slate-400 max-w-md text-xs leading-relaxed mb-4">
+                        The sovereign digital currency bridge protocol engineered for zero-friction trade, cross-border remittances, and real-time atomic settlement between India and the United Arab Emirates.
+                    </p>
+                    <div class="text-[11px] font-mono text-slate-500">
+                        Contract Address: <span class="text-cyan-400">0x225AED...eINR7790bB92</span>
+                    </div>
+                </div>
+
+                <!-- Col 2 -->
+                <div>
+                    <h5 class="text-xs font-bold text-white uppercase tracking-wider font-mono mb-3">Key Resources</h5>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#simulator" class="hover:text-cyan-400 transition-colors">Swap Simulator</a></li>
+                        <li><a href="#contract-functions" class="hover:text-cyan-400 transition-colors">transferInrToAed Spec</a></li>
+                        <li><a href="#rate-mechanics" class="hover:text-cyan-400 transition-colors">22.5 Ratio Mechanics</a></li>
+                        <li><a href="#instructions" class="hover:text-cyan-400 transition-colors">Integration Guide</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3 -->
+                <div>
+                    <h5 class="text-xs font-bold text-white uppercase tracking-wider font-mono mb-3">Institutional Links</h5>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#banks" class="hover:text-orange-400 transition-colors">Reserve Bank of India (e-INR)</a></li>
+                        <li><a href="#banks" class="hover:text-emerald-400 transition-colors">Central Bank of UAE (e-AED)</a></li>
+                        <li><a href="#security" class="hover:text-cyan-400 transition-colors">Security Audit Report</a></li>
+                        <li><a href="#faq" class="hover:text-cyan-400 transition-colors">Regulatory Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-slate-850 flex flex-col sm:flex-row justify-between items-center gap-4 text-[11px]">
+                <p>&copy; 2025 CrossBorderCBDCSwap Consortium. Authorized bilateral cross-border financial framework.</p>
+                <div class="flex items-center gap-4 font-mono text-slate-500">
+                    <span>1 e-AED = 22.5000 e-INR</span>
+                    <span>&bull;</span>
+                    <span class="text-emerald-400">Status: Operational (100% Uptime)</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- TRANSACTION MODAL (SIMULATED SUCCESS) -->
+    <div id="txModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900 border border-slate-700 max-w-md w-full rounded-2xl p-6 relative animate-float shadow-2xl">
+            <div class="text-center">
+                <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto text-2xl mb-4">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">Atomic Swap Settled!</h3>
+                <p class="text-xs text-slate-300 mt-1">Contract function executed successfully on bilateral ledger.</p>
+            </div>
+
+            <div class="mt-6 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Function:</span>
+                    <span id="modalFunction" class="text-amber-400 font-semibold">transferInrToAed</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Sent:</span>
+                    <span id="modalSent" class="text-white font-bold">22,500.00 e-INR</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Received:</span>
+                    <span id="modalReceived" class="text-emerald-400 font-bold">1,000.00 e-AED</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Settled At:</span>
+                    <span class="text-slate-300">1 e-AED = 22.5 e-INR</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Tx Hash:</span>
+                    <span class="text-cyan-400 truncate w-36">0x4f89d81...78ae2c</span>
+                </div>
+            </div>
+
+            <div class="mt-6 flex gap-3">
+                <button onclick="closeModal()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State variables
+        let isDirectMode = true; // true = e-INR -> e-AED; false = e-AED -> e-INR
+        const RATE = 22.5; // 1 e-AED = 22.5 e-INR
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Function selector data for code viewer
+        const functionCodeMap = {
+            transferInrToAed: {
+                title: "CrossBorderCBDCSwap.sol • transferInrToAed",
+                code: `<span class="text-purple-400">pragma solidity</span> ^0.8.20;
+
+<span class="text-slate-500">/**
+ * @title CrossBorderCBDCSwap
+ * @notice Direct conversion of e-INR to e-AED at 1:22.5 ratio
+ */</span>
+<span class="text-purple-400">function</span> <span class="text-blue-400">transferInrToAed</span>(
+    <span class="text-purple-400">uint256</span> inrAmount, 
+    <span class="text-purple-400">address</span> recipientAed
+) <span class="text-purple-400">external returns</span> (<span class="text-purple-400">uint256</span> aedAmount) {
+    <span class="text-purple-400">require</span>(inrAmount &gt; 0, <span class="text-emerald-300">"Invalid INR amount"</span>);
+    <span class="text-purple-400">require</span>(recipientAed != <span class="text-purple-400">address</span>(0), <span class="text-emerald-300">"Invalid recipient"</span>);
+
+    <span class="text-slate-500">// Anchored ratio: 22.5 e-INR = 1 e-AED</span>
+    aedAmount = (inrAmount * 1e18) / (22.5 * 1e18);
+    <span class="text-purple-400">require</span>(eAED.balanceOf(<span class="text-purple-400">address</span>(<span class="text-purple-400">this</span>)) &gt;= aedAmount, <span class="text-emerald-300">"Insufficient e-AED liquidity"</span>);
+
+    <span class="text-slate-500">// Atomic DvP execution</span>
+    eINR.transferFrom(msg.sender, <span class="text-purple-400">address</span>(<span class="text-purple-400">this</span>), inrAmount);
+    eAED.transfer(recipientAed, aedAmount);
+
+    <span class="text-purple-400">emit</span> <span class="text-cyan-400">SwapInrToAed</span>(msg.sender, recipientAed, inrAmount, aedAmount);
+    <span class="text-purple-400">return</span> aedAmount;
+}`,
+                inputs: "• inrAmount (uint256) - Raw e-INR value<br>• recipientAed (address) - UAE wallet",
+                outputs: "• aedAmount (uint256) - Exact e-AED delivered"
+            },
+            transferAedToInr: {
+                title: "CrossBorderCBDCSwap.sol • transferAedToInr",
+                code: `<span class="text-purple-400">pragma solidity</span> ^0.8.20;
+
+<span class="text-slate-500">/**
+ * @notice Reverse transfer: converts e-AED to e-INR for Indian beneficiaries
+ */</span>
+<span class="text-purple-400">function</span> <span class="text-blue-400">transferAedToInr</span>(
+    <span class="text-purple-400">uint256</span> aedAmount, 
+    <span class="text-purple-400">address</span> recipientInr
+) <span class="text-purple-400">external returns</span> (<span class="text-purple-400">uint256</span> inrAmount) {
+    <span class="text-purple-400">require</span>(aedAmount &gt; 0, <span class="text-emerald-300">"Invalid AED amount"</span>);
+    <span class="text-purple-400">require</span>(recipientInr != <span class="text-purple-400">address</span>(0), <span class="text-emerald-300">"Invalid recipient"</span>);
+
+    <span class="text-slate-500">// inrAmount = aedAmount * 22.5</span>
+    inrAmount = (aedAmount * 225) / 10;
+    <span class="text-purple-400">require</span>(eINR.balanceOf(<span class="text-purple-400">address</span>(<span class="text-purple-400">this</span>)) &gt;= inrAmount, <span class="text-emerald-300">"Insufficient e-INR liquidity"</span>);
+
+    eAED.transferFrom(msg.sender, <span class="text-purple-400">address</span>(<span class="text-purple-400">this</span>), aedAmount);
+    eINR.transfer(recipientInr, inrAmount);
+
+    <span class="text-purple-400">emit</span> <span class="text-cyan-400">SwapAedToInr</span>(msg.sender, recipientInr, aedAmount, inrAmount);
+    <span class="text-purple-400">return</span> inrAmount;
+}`,
+                inputs: "• aedAmount (uint256) - Amount of e-AED<br>• recipientInr (address) - Indian wallet",
+                outputs: "• inrAmount (uint256) - Exact e-INR transferred"
+            },
+            getExchangeRate: {
+                title: "CrossBorderCBDCSwap.sol • getExchangeRate",
+                code: `<span class="text-purple-400">pragma solidity</span> ^0.8.20;
+
+<span class="text-slate-500">/**
+ * @notice Returns the fixed conversion ratio parameters
+ * @return numerator 225
+ * @return denominator 10 (Yields 22.5)
+ */</span>
+<span class="text-purple-400">function</span> <span class="text-blue-400">getExchangeRate</span>() <span class="text-purple-400">external pure returns</span> (
+    <span class="text-purple-400">uint256</span> numerator, 
+    <span class="text-purple-400">uint256</span> denominator
+) {
+    <span class="text-purple-400">return</span> (225, 10);
+}`,
+                inputs: "None (pure function)",
+                outputs: "• numerator (uint256 = 225)<br>• denominator (uint256 = 10)"
+            },
+            settleLiquidity: {
+                title: "CrossBorderCBDCSwap.sol • settleLiquidity",
+                code: `<span class="text-purple-400">pragma solidity</span> ^0.8.20;
+
+<span class="text-slate-500">/**
+ * @notice Rebalance vaults between Bank of India and Central Bank of UAE
+ * @dev Restricted to dual multisig
+ */</span>
+<span class="text-purple-400">function</span> <span class="text-blue-400">settleLiquidity</span>(
+    <span class="text-purple-400">uint256</span> inrRebalance,
+    <span class="text-purple-400">uint256</span> aedRebalance
+) <span class="text-purple-400">external onlyBilateralBanks</span> {
+    <span class="text-slate-500">// Sovereign rebalancing mechanics</span>
+    <span class="text-purple-400">emit</span> <span class="text-cyan-400">LiquidityRebalanced</span>(inrRebalance, aedRebalance);
+}`,
+                inputs: "• inrRebalance (uint256)<br>• aedRebalance (uint256)",
+                outputs: "Emits LiquidityRebalanced event"
+            }
+        };
+
+        function selectFunction(funcName) {
+            // Update active styling
+            document.querySelectorAll('.function-card').forEach(el => {
+                el.classList.remove('border-brand-inr', 'border-brand-aed', 'border-cyan-400', 'border-purple-400');
+                el.classList.add('border-slate-800', 'opacity-80');
+            });
+
+            const activeCard = document.getElementById(`card-${funcName}`);
+            activeCard.classList.remove('border-slate-800', 'opacity-80');
+            
+            if (funcName === 'transferInrToAed') activeCard.classList.add('border-brand-inr');
+            else if (funcName === 'transferAedToInr') activeCard.classList.add('border-brand-aed');
+            else if (funcName === 'getExchangeRate') activeCard.classList.add('border-cyan-400');
+            else if (funcName === 'settleLiquidity') activeCard.classList.add('border-purple-400');
+
+            // Update code display
+            const data = functionCodeMap[funcName];
+            document.getElementById('codeFileName').innerText = data.title;
+            document.getElementById('codeDisplay').innerHTML = `<code>${data.code}</code>`;
+            
+            document.getElementById('functionMetadata').innerHTML = `
+                <h5 class="text-xs font-bold text-white uppercase tracking-wider font-mono mb-3">Parameters &amp; Return Types</h5>
+                <div class="grid sm:grid-cols-2 gap-4 text-xs font-mono">
+                    <div>
+                        <span class="text-slate-400">Input Parameters:</span>
+                        <div class="mt-1 space-y-1 text-slate-300">${data.inputs}</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-400">Output Returns:</span>
+                        <div class="mt-1 space-y-1 text-slate-300">${data.outputs}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Calculation logic
+        function calculateSwap() {
+            const fromInput = document.getElementById('fromAmount');
+            const toInput = document.getElementById('toAmount');
+            const val = parseFloat(fromInput.value) || 0;
+
+            if (isDirectMode) {
+                // e-INR -> e-AED (val / 22.5)
+                const result = val / RATE;
+                toInput.value = result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+            } else {
+                // e-AED -> e-INR (val * 22.5)
+                const result = val * RATE;
+                toInput.value = result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
+
+        function setQuickAmount(amt) {
+            document.getElementById('fromAmount').value = amt;
+            calculateSwap();
+        }
+
+        function toggleDirection() {
+            isDirectMode = !isDirectMode;
+            
+            const inputLabel = document.getElementById('inputLabelText');
+            const outputLabel = document.getElementById('outputLabelText');
+            const sourceFlag = document.getElementById('sourceFlag');
+            const targetFlag = document.getElementById('targetFlag');
+            const sourceName = document.getElementById('sourceCurrencyName');
+            const targetName = document.getElementById('targetCurrencyName');
+            const sourceMini = document.getElementById('sourceSymbolMini');
+            const sourceBal = document.getElementById('sourceBalance');
+            const formula = document.getElementById('formulaDisplay');
+            const methodName = document.getElementById('methodName');
+            const btnActionText = document.getElementById('btnActionText');
+            const recipientLabel = document.getElementById('recipientAddressLabel');
+
+            if (isDirectMode) {
+                // e-INR -> e-AED
+                inputLabel.innerText = "You Send (Deposit to Contract)";
+                outputLabel.innerText = "Recipient Receives (Settled in UAE)";
+                sourceFlag.innerText = "🇮🇳";
+                targetFlag.innerText = "🇦🇪";
+                sourceName.innerText = "e-INR";
+                targetName.innerText = "e-AED";
+                sourceMini.innerText = "e-INR";
+                sourceBal.innerText = "50,000.00";
+                formula.innerText = "e-INR / 22.5";
+                methodName.innerText = "transferInrToAed(amount, recipient)";
+                btnActionText.innerText = "Execute transferInrToAed Direct Swap";
+                recipientLabel.innerText = "bankUAE Corridor";
+                document.getElementById('fromAmount').value = "22500";
+            } else {
+                // e-AED -> e-INR
+                inputLabel.innerText = "You Send (Deposit to Contract)";
+                outputLabel.innerText = "Recipient Receives (Settled in India)";
+                sourceFlag.innerText = "🇦🇪";
+                targetFlag.innerText = "🇮🇳";
+                sourceName.innerText = "e-AED";
+                targetName.innerText = "e-INR";
+                sourceMini.innerText = "e-AED";
+                sourceBal.innerText = "2,500.00";
+                formula.innerText = "e-AED * 22.5";
+                methodName.innerText = "transferAedToInr(amount, recipient)";
+                btnActionText.innerText = "Execute transferAedToInr Direct Swap";
+                recipientLabel.innerText = "bankIndia Corridor";
+                document.getElementById('fromAmount').value = "1000";
+            }
+
+            calculateSwap();
+            logTerminal(`[SWITCH] Direction set to: ${isDirectMode ? 'e-INR -> e-AED (transferInrToAed)' : 'e-AED -> e-INR (transferAedToInr)'}`);
+        }
+
+        function logTerminal(msg) {
+            const terminal = document.getElementById('terminalLog');
+            const now = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = "text-slate-300";
+            div.innerHTML = `<span class="text-slate-500">[${now}]</span> ${msg}`;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('terminalLog').innerHTML = `
+                <div class="text-slate-500">[SYSTEM] Node connected: Bilateral Corridor Gateway (IN-UAE-CBDC-01)</div>
+                <div class="text-slate-500">[ORACLE] Peg verification: 1 e-AED = 22.5000 e-INR OK</div>
+            `;
+        }
+
+        function executeSimulatedSwap() {
+            const fromVal = document.getElementById('fromAmount').value;
+            const toVal = document.getElementById('toAmount').value;
+            const btn = document.getElementById('executeSwapBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing Atomic Bridge...`;
+
+            logTerminal(`[TX BROADCAST] Calling ${isDirectMode ? 'transferInrToAed' : 'transferAedToInr'} for ${fromVal} ${isDirectMode ? 'e-INR' : 'e-AED'}...`);
+
+            setTimeout(() => {
+                logTerminal(`[VAULT] Liquidity check passed: Vault reserves verified.`);
+            }, 600);
+
+            setTimeout(() => {
+                logTerminal(`[ATOMIC SETTLE] Block #492819 confirmed. Tokens swapped at 1:22.5 ratio.`);
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-bolt"></i> <span id="btnActionText">${isDirectMode ? 'Execute transferInrToAed Direct Swap' : 'Execute transferAedToInr Direct Swap'}</span>`;
+                
+                // Show modal
+                document.getElementById('modalFunction').innerText = isDirectMode ? 'transferInrToAed' : 'transferAedToInr';
+                document.getElementById('modalSent').innerText = `${parseFloat(fromVal).toLocaleString()} ${isDirectMode ? 'e-INR' : 'e-AED'}`;
+                document.getElementById('modalReceived').innerText = `${toVal} ${isDirectMode ? 'e-AED' : 'e-INR'}`;
+                document.getElementById('txModal').classList.remove('hidden');
+            }, 1400);
+        }
+
+        function closeModal() {
+            document.getElementById('txModal').classList.add('hidden');
+        }
+
+        function toggleFaq(id) {
+            const ans = document.getElementById(`faq-answer-${id}`);
+            const icon = document.getElementById(`faq-icon-${id}`);
+            if (ans.classList.contains('hidden')) {
+                ans.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                ans.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        function scrollToSimulator() {
+            document.getElementById('simulator').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function mockConnectWallet() {
+            const btn = document.getElementById('navWalletBtn');
+            const txt = document.getElementById('navWalletText');
+            txt.innerText = "0x89A...e321 (CBDC-IN)";
+            btn.classList.remove('from-brand-inr', 'to-brand-aed');
+            btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/40');
+            logTerminal(`[WALLET] Authorized CBDC participant connected: 0x89A2...e321`);
+        }
+
+        function copyCodeSnippet() {
+            const btnText = document.getElementById('copyBtnText');
+            btnText.innerText = "Copied!";
+            setTimeout(() => {
+                btnText.innerText = "Copy Code";
+            }, 2000);
+        }
+
+        // Initialize default swap
+        calculateSwap();
+    </script>
+</body>
+</html>
